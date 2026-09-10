@@ -8,6 +8,7 @@ const bridge = vi.hoisted(() => ({
   fetchSnapshots: vi.fn(),
   getPreferences: vi.fn(),
   listenDesktopEvents: vi.fn(),
+  setQuotaWindow: vi.fn(),
   setWidgetExpanded: vi.fn(),
   updatePreferences: vi.fn(),
 }));
@@ -40,6 +41,7 @@ const snapshot: ProviderSnapshot = {
     resetsAt: "2026-07-14T05:00:00Z",
     windowSeconds: 18_000,
   },
+  credits: { balance: 1211, unlimited: false },
   resetCredits: 0,
   updatedAt: "2026-07-14T00:00:00Z",
   status: "ok",
@@ -50,6 +52,7 @@ beforeEach(() => {
   bridge.fetchSnapshots.mockResolvedValue([snapshot]);
   bridge.getPreferences.mockResolvedValue(preferences);
   bridge.listenDesktopEvents.mockResolvedValue(() => undefined);
+  bridge.setQuotaWindow.mockResolvedValue({ ...preferences, quotaWindow: "fiveHour" });
   bridge.updatePreferences.mockResolvedValue(undefined);
   window.requestAnimationFrame = (callback: FrameRequestCallback) => window.setTimeout(callback, 0);
   window.cancelAnimationFrame = (handle: number) => window.clearTimeout(handle);
@@ -149,6 +152,17 @@ describe("quota window preference events", () => {
     expect(await screen.findByText("5-hour remaining")).toBeTruthy();
     expect(screen.getAllByText("75").length).toBeGreaterThan(0);
     expect(screen.getByRole("progressbar", { name: "5-hour quota remaining 75%" })).toBeTruthy();
+  });
+
+  it("toggles the quota window from the expanded panel", async () => {
+    render(<App />);
+
+    const button = await screen.findByRole("button", { name: "Switch to 5-hour quota" });
+    fireEvent.click(button);
+
+    expect(bridge.setQuotaWindow).toHaveBeenCalledWith("fiveHour");
+    expect(await screen.findByText("5-hour remaining")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Switch to weekly quota" })).toBeTruthy();
   });
 
   it("defaults legacy preferences without a quota window to weekly", async () => {

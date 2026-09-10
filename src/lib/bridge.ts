@@ -1,4 +1,4 @@
-import type { ProviderSnapshot, WidgetPreferences } from "../types";
+import type { ProviderSnapshot, QuotaWindow, WidgetPreferences } from "../types";
 
 const defaultPreferences: WidgetPreferences = { panelVisible: true, expanded: true, alwaysOnTop: true, pinnedProvider: null, autoRotateSeconds: 12, language: "zh-CN", quotaWindow: "weekly" };
 
@@ -8,6 +8,7 @@ const mockSnapshot: ProviderSnapshot = {
   plan: "PRO",
   weeklyWindow: { remainingPercent: 42, resetsAt: new Date(Date.now() + 3.2 * 86_400_000).toISOString(), windowSeconds: 604_800 },
   fiveHourWindow: { remainingPercent: 76, resetsAt: new Date(Date.now() + 3.5 * 3_600_000).toISOString(), windowSeconds: 18_000 },
+  credits: { balance: 1211, unlimited: false },
   resetCredits: 1,
   resetCreditExpiresAt: [new Date(Date.now() + 9 * 86_400_000).toISOString()],
   updatedAt: new Date().toISOString(),
@@ -33,6 +34,12 @@ export async function updatePreferences(value: WidgetPreferences): Promise<void>
   if (!isTauri()) return;
   const { invoke } = await import("@tauri-apps/api/core");
   await invoke("set_preferences", { preferences: value });
+}
+
+export async function setQuotaWindow(quotaWindow: QuotaWindow): Promise<WidgetPreferences> {
+  if (!isTauri()) return { ...defaultPreferences, quotaWindow };
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<WidgetPreferences>("set_quota_window", { quotaWindow });
 }
 
 export async function setAlwaysOnTop(alwaysOnTop: boolean): Promise<WidgetPreferences> {

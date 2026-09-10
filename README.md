@@ -17,10 +17,11 @@ Ubuntu support is an additional platform path. Shared React, quota, preference, 
 ## What it shows
 
 - Codex plan, 5-hour or weekly remaining quota, the selected window's next reset time, and reset-credit information when the service provides it.
+- Both full-panel quota views show **Credits** (**点数余额** in Chinese) between the reset-date line and reset-credit information. The amount uses the same `US$48.44` format in both languages and updates with quota refreshes. The USD display converts the service credit balance at 25 credits per US dollar; it is not the discounted purchase cost. Missing balances display `—`. See [conversion limitations](docs/KNOWN-LIMITATIONS.md).
 - Healthy, caution, critical, stale, signed-out, and unavailable states.
 - A 320 × 320 full panel and a 100 × 100 compact quota orb.
 - Persistent preferences for panel visibility, expanded/compact mode, quota window, and interface language.
-- The top-bar tray menu offers **5-hour quota** and **Weekly quota** with a check mark for the current choice. The full panel and compact orb switch together, and the choice survives restarts. Existing settings default to weekly quota.
+- The expanded panel's **5h**/**1w** badge toggles between the 5-hour and weekly quota pages without changing its appearance. The top-bar tray menu offers **5-hour quota** and **Weekly quota** with a check mark for the current choice. The full panel and compact orb switch together, and the choice survives restarts. Existing settings default to weekly quota.
 - Tray controls also include show/hide, refresh, language, start at login, and quit.
 - Manual refresh from error states and the tray, so recovery is not blocked by automatic retry backoff.
 
@@ -29,7 +30,7 @@ Ubuntu support is an additional platform path. Shared React, quota, preference, 
 Download the Ubuntu 26.04 `.deb`, then install it with `apt` so runtime dependencies are resolved:
 
 ```bash
-sudo apt install "./Quota Float Ubuntu_0.1.12-1_amd64.deb"
+sudo apt install "./Quota Float Ubuntu_0.1.12-2_amd64.deb"
 ```
 
 The supported Linux desktop session is Ubuntu 26.04 with GNOME Shell 48–50 on Wayland. Sign in to Codex on the same machine first. After the initial extension install or update, log out and back in once so GNOME Shell can scan it. In a supported GNOME session, Quota Float makes a best-effort attempt to enable the extension at startup and disable it on a normal exit. If system policy, a crash, or forced termination prevents cleanup, control it manually:

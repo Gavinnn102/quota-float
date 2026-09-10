@@ -4,10 +4,10 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION};
 use serde_json::Value;
 
-use crate::models::{ProviderSnapshot, UsageWindow};
+use crate::models::{CreditBalance, ProviderSnapshot, UsageWindow};
 
 const USAGE_URL: &str = "https://chatgpt.com/backend-api/wham/usage";
-const CREDITS_URL: &str = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits";
+const RESET_CREDITS_URL: &str = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits";
 const MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
 const MAX_AUTH_BYTES: u64 = 256 * 1024;
 const FIVE_HOUR_WINDOW_SECONDS: u64 = 18_000;
@@ -95,6 +95,18 @@ fn integer(value: &Value, keys: &[&str]) -> Option<u64> {
             .as_u64()
             .or_else(|| value.as_i64().and_then(|item| u64::try_from(item).ok()))
     })
+}
+
+fn parse_credit_balance(value: Option<&Value>) -> Option<CreditBalance> {
+    let value = value?.as_object()?;
+    let unlimited = value.get("unlimited").and_then(Value::as_bool) == Some(true);
+    let balance = value.get("balance").and_then(|balance| {
+        balance
+            .as_f64()
+            .or_else(|| balance.as_str()?.trim().parse::<f64>().ok())
+            .filter(|number| number.is_finite())
+    });
+    (unlimited || balance.is_some()).then_some(CreditBalance { balance, unlimited })
 }
 
 fn timestamp(value: &Value, keys: &[&str]) -> Option<String> {
@@ -477,7 +489,10 @@ pub async fn fetch_snapshot(client: &reqwest::Client) -> ProviderSnapshot {
             .get(USAGE_URL)
             .headers(request_headers.clone())
             .send(),
-        client.get(CREDITS_URL).headers(request_headers).send(),
+        client
+            .get(RESET_CREDITS_URL)
+            .headers(request_headers)
+            .send(),
     );
 
     let usage_response = match usage_result {
@@ -564,6 +579,7 @@ pub async fn fetch_snapshot(client: &reqwest::Client) -> ProviderSnapshot {
         plan: pick_string(&usage, &["plan_type", "planType"]).map(|value| value.to_uppercase()),
         weekly_window,
         five_hour_window,
+        credits: parse_credit_balance(usage.get("credits")),
         reset_credits,
         reset_credit_expires_at,
         updated_at: chrono::Utc::now().to_rfc3339(),
@@ -575,6 +591,61 @@ pub async fn fetch_snapshot(client: &reqwest::Client) -> ProviderSnapshot {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_credit_balances_without_confusing_them_with_reset_credits() {
+        for balance in [
+            serde_json::json!("1211.0000000000"),
+            serde_json::json!(1211),
+        ] {
+            let usage = serde_json::json!({
+                "credits": {"has_credits": true, "unlimited": false, "balance": balance},
+                "rate_limit_reset_credits": {"available_count": 3}
+            });
+            let credits = parse_credit_balance(usage.get("credits")).unwrap();
+            assert_eq!(credits.balance, Some(1211.0));
+            assert!(!credits.unlimited);
+            assert!(parse_credit_balance(usage.get("rate_limit_reset_credits")).is_none());
+        }
+    }
+
+    #[test]
+    fn preserves_zero_and_negative_credit_balances() {
+        for balance in ["0", "-2.5"] {
+            let value = serde_json::json!({"has_credits": false, "balance": balance});
+            assert_eq!(
+                parse_credit_balance(Some(&value)).unwrap().balance,
+                balance.parse::<f64>().ok()
+            );
+        }
+    }
+
+    #[test]
+    fn missing_or_invalid_credit_balances_remain_unknown() {
+        assert!(parse_credit_balance(None).is_none());
+        for value in [
+            serde_json::json!(null),
+            serde_json::json!([]),
+            serde_json::json!({"has_credits": false}),
+            serde_json::json!({"balance": null}),
+            serde_json::json!({"balance": ""}),
+            serde_json::json!({"balance": "unknown"}),
+            serde_json::json!({"balance": "NaN"}),
+            serde_json::json!({"balance": "Infinity"}),
+            serde_json::json!({"balance": "1e999"}),
+            serde_json::json!({"balance": true}),
+        ] {
+            assert!(parse_credit_balance(Some(&value)).is_none(), "{value}");
+        }
+    }
+
+    #[test]
+    fn unlimited_credits_do_not_require_a_numeric_balance() {
+        let value = serde_json::json!({"unlimited": true, "balance": null});
+        let credits = parse_credit_balance(Some(&value)).unwrap();
+        assert!(credits.unlimited);
+        assert!(credits.balance.is_none());
+    }
 
     #[test]
     fn parses_both_window_shapes() {

@@ -19,6 +19,7 @@ const baseSnapshot: ProviderSnapshot = {
     resetsAt: "2026-07-14T05:00:00Z",
     windowSeconds: 18_000,
   },
+  credits: { balance: 1211, unlimited: false },
   resetCredits: 0,
   updatedAt: "2026-07-14T00:00:00Z",
   status: "ok",
@@ -53,12 +54,34 @@ function renderOrb(snapshot: ProviderSnapshot, quotaWindow: WidgetPreferences["q
   );
 }
 
+function renderCard(snapshot: ProviderSnapshot, overrides: Partial<WidgetPreferences> = {}) {
+  return render(
+    <QuotaCard
+      snapshot={snapshot}
+      preferences={{ ...preferences, ...overrides }}
+      providerCount={1}
+      onPrevious={() => undefined}
+      onNext={() => undefined}
+      onTogglePin={() => undefined}
+      onLanguage={() => undefined}
+      onHover={() => undefined}
+      onToggleExpanded={() => undefined}
+    />,
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
 });
 
 describe("compact quota view", () => {
+  it("keeps the credit balance out of the compact orb", () => {
+    renderOrb(baseSnapshot);
+    expect(screen.queryByText("点数余额")).toBeNull();
+    expect(screen.queryByText("US$48.44")).toBeNull();
+  });
+
   it.each([0, 50, 100])("renders the exact %s%% boundary without hiding it", (remainingPercent) => {
     renderOrb({
       ...baseSnapshot,
@@ -114,6 +137,52 @@ describe("compact quota view", () => {
 
 });
 
+describe("expanded credit balance", () => {
+  it.each([
+    ["zh-CN", "weekly", "点数余额"],
+    ["zh-CN", "fiveHour", "点数余额"],
+    ["en", "weekly", "Credits"],
+    ["en", "fiveHour", "Credits"],
+  ] as const)("shows a USD balance for %s / %s", (language, quotaWindow, label) => {
+    renderCard({ ...baseSnapshot, resetCredits: 3 }, { language, quotaWindow });
+    expect(screen.getByText(label)).toBeTruthy();
+    expect(screen.getByText("US$48.44")).toBeTruthy();
+    expect(screen.getByText(language === "en" ? "3 reset credits" : "3 次重置机会")).toBeTruthy();
+  });
+
+  it("shows zero when the service returns an empty balance", () => {
+    renderCard({ ...baseSnapshot, credits: { balance: 0, unlimited: false } });
+    expect(screen.getByText("US$0.00")).toBeTruthy();
+  });
+
+  it("can open and close reset-credit details alongside the balance", () => {
+    renderCard({ ...baseSnapshot, resetCredits: 1 });
+    const button = screen.getByRole("button", { name: "查看" });
+    fireEvent.click(button);
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByText("当前接口只返回数量，未返回到期时间。")).toBeTruthy();
+    fireEvent.click(button);
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByText("当前接口只返回数量，未返回到期时间。")).toBeNull();
+    expect(screen.getByText("US$48.44")).toBeTruthy();
+  });
+
+  it("leaves a missing balance unknown while keeping the quota usable", () => {
+    renderCard({ ...baseSnapshot, credits: null });
+    expect(screen.getByText("点数余额")).toBeTruthy();
+    expect(screen.getByText("—")).toBeTruthy();
+    expect(screen.getByRole("progressbar")).toBeTruthy();
+  });
+
+  it.each(["signed_out", "unavailable", "stale"] as const)("hides unusable balances in the %s state", (status) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-14T00:31:00Z"));
+    renderCard({ ...baseSnapshot, status });
+    expect(screen.queryByText("US$48.44")).toBeNull();
+    expect(screen.queryByText("点数余额")).toBeNull();
+  });
+});
+
 describe("manual recovery", () => {
   it.each(["signed_out", "unavailable"] as const)("offers refresh for %s failures", (status) => {
     const onRefresh = vi.fn();
@@ -138,6 +207,29 @@ describe("manual recovery", () => {
 });
 
 describe("selected quota window", () => {
+  it("turns the visible window badge into a toggle button", () => {
+    const onQuotaWindowToggle = vi.fn();
+    render(
+      <QuotaCard
+        snapshot={baseSnapshot}
+        preferences={preferences}
+        providerCount={1}
+        onPrevious={() => undefined}
+        onNext={() => undefined}
+        onTogglePin={() => undefined}
+        onLanguage={() => undefined}
+        onQuotaWindowToggle={onQuotaWindowToggle}
+        onHover={() => undefined}
+        onToggleExpanded={() => undefined}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: "切换到 5 小时额度" });
+    expect(button.textContent).toBe("1w");
+    fireEvent.click(button);
+    expect(onQuotaWindowToggle).toHaveBeenCalledWith("fiveHour");
+  });
+
   it("uses the five-hour reset source and its color tier", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-14T00:00:00Z"));

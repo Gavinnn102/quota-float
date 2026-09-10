@@ -8,6 +8,7 @@ const preview: ProviderSnapshot = {
   plan: "PRO",
   weeklyWindow: { remainingPercent: 42, resetsAt: new Date(Date.now() + 3.2 * 86_400_000).toISOString(), windowSeconds: 604_800 },
   fiveHourWindow: { remainingPercent: 76, resetsAt: new Date(Date.now() + 2.4 * 3_600_000).toISOString(), windowSeconds: 18_000 },
+  credits: { balance: 1211, unlimited: false },
   resetCredits: 1,
   resetCreditExpiresAt: [new Date(Date.now() + 9 * 86_400_000).toISOString()],
   updatedAt: new Date().toISOString(),
@@ -100,6 +101,7 @@ export function DesignPlayground() {
       ...preview,
       status: mode,
       weeklyWindow: null,
+      credits: null,
       resetCredits: null,
       message: mode === "signed_out" ? "Codex sign-in expired. Please sign in again." : "Quota is temporarily unavailable. It will retry in 30 seconds.",
     };

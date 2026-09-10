@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { QuotaCard, QuotaOrb } from "./components/QuotaCard";
-import { fetchSnapshots, getPreferences, listenDesktopEvents, setWidgetExpanded, updatePreferences } from "./lib/bridge";
+import { fetchSnapshots, getPreferences, listenDesktopEvents, setQuotaWindow, setWidgetExpanded, updatePreferences } from "./lib/bridge";
 import { needsFastRefresh } from "./lib/format";
 import { copy, nextLanguage, normalizeLanguage } from "./lib/i18n";
 import { mergeSnapshots } from "./lib/snapshots";
@@ -103,7 +103,7 @@ export default function App() {
       failures.current += 1;
       setSnapshots((current) => current.length > 0
         ? current.map((item) => ({ ...item, status: "stale", message: "Refresh failed. Please try again later." }))
-        : [{ provider: "codex", displayName: "CODEX", plan: null, weeklyWindow: null, fiveHourWindow: null, resetCredits: null, resetCreditExpiresAt: [], updatedAt: new Date().toISOString(), status: "unavailable", message: "Quota is temporarily unavailable. It will retry automatically." }]);
+        : [{ provider: "codex", displayName: "CODEX", plan: null, weeklyWindow: null, fiveHourWindow: null, credits: null, resetCredits: null, resetCreditExpiresAt: [], updatedAt: new Date().toISOString(), status: "unavailable", message: "Quota is temporarily unavailable. It will retry automatically." }]);
     }
   }, []);
 
@@ -163,6 +163,20 @@ export default function App() {
     setOperationError(null);
     void updatePreferences(next).catch(() => { setPreferences(previous); setOperationError("settingsSaveFailed"); });
   }, [preferences]);
+
+  const changeQuotaWindow = useCallback((quotaWindow: QuotaWindow) => {
+    const previous = preferences.quotaWindow;
+    setPreferences((current) => ({ ...current, quotaWindow }));
+    setOperationError(null);
+    void setQuotaWindow(quotaWindow)
+      .then((next) => {
+        setPreferences((current) => ({ ...current, quotaWindow: normalizeQuotaWindow(next.quotaWindow) }));
+      })
+      .catch(() => {
+        setPreferences((current) => ({ ...current, quotaWindow: previous }));
+        setOperationError("settingsSaveFailed");
+      });
+  }, [preferences.quotaWindow]);
 
   useEffect(() => {
     const expanded = focusAfterResize.current;
@@ -228,6 +242,7 @@ export default function App() {
           onNext={() => setActiveIndex((value) => (value + 1) % snapshots.length)}
           onTogglePin={() => savePreferences({ ...preferences, pinnedProvider: preferences.pinnedProvider ? null : current.provider })}
           onLanguage={() => savePreferences({ ...preferences, language: nextLanguage(language) })}
+          onQuotaWindowToggle={changeQuotaWindow}
           onHover={() => {}}
           onRefresh={() => refresh(true)}
           isConsuming={consumingProviders.has(consumptionKey(current.provider, preferences.quotaWindow))}

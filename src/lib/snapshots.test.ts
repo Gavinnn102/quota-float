@@ -8,6 +8,7 @@ const success: ProviderSnapshot = {
   plan: "PRO",
   weeklyWindow: { remainingPercent: 42, resetsAt: "2026-07-10T00:00:00Z", windowSeconds: 604_800 },
   fiveHourWindow: { remainingPercent: 78, resetsAt: "2026-07-07T05:00:00Z", windowSeconds: 18_000 },
+  credits: { balance: 1211, unlimited: false },
   resetCredits: 1,
   updatedAt: "2026-07-07T00:00:00Z",
   status: "ok",
@@ -21,10 +22,18 @@ describe("snapshot failure handling", () => {
   });
 
   it("retains both cached windows during a transient failure", () => {
-    const failure: ProviderSnapshot = { ...success, weeklyWindow: null, fiveHourWindow: null, status: "unavailable", message: "Network unavailable", updatedAt: "2026-07-07T01:00:00Z" };
+    const failure: ProviderSnapshot = { ...success, weeklyWindow: null, fiveHourWindow: null, credits: null, status: "unavailable", message: "Network unavailable", updatedAt: "2026-07-07T01:00:00Z" };
     const merged = mergeSnapshots([success], [failure])[0];
     expect(merged.weeklyWindow?.remainingPercent).toBe(42);
     expect(merged.fiveHourWindow?.remainingPercent).toBe(78);
+    expect(merged.credits?.balance).toBe(1211);
+  });
+
+  it("updates the balance on refresh and clears it when a fresh response omits credits", () => {
+    const refreshed: ProviderSnapshot = { ...success, credits: { balance: 1123, unlimited: false } };
+    expect(mergeSnapshots([success], [refreshed])[0].credits?.balance).toBe(1123);
+    expect(mergeSnapshots([success], [{ ...success, credits: null }])[0].credits).toBeNull();
+    expect(mergeSnapshots([success], [{ ...success, credits: null, status: "signed_out" }])[0].credits).toBeNull();
   });
 
   it("keeps an available five-hour response from falling back to the weekly window", () => {

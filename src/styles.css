@@ -70,7 +70,8 @@ html[data-mock-widget-size="compact"] .widget-view--compact { display: block; }
 .eyebrow, .updated, .weekly-metric p, .weekly-metric span, .reset-time { margin: 0; }
 .eyebrow, .updated, .weekly-metric, .reset-time { text-shadow: 0 1px 8px rgba(60,70,96,.18); }
 .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .18em; }
-.quota-window-badge { display: inline-flex; align-items: center; margin-left: 5px; padding: 2px 5px; border: 1px solid rgba(255,255,255,.34); border-radius: 999px; color: rgba(17,20,27,.7); background: rgba(255,255,255,.24); font-size: 9px; font-weight: 750; letter-spacing: .03em; vertical-align: 2px; }
+.quota-window-badge { display: inline-flex; align-items: center; margin-left: 5px; padding: 2px 5px; border: 1px solid rgba(255,255,255,.34); border-radius: 999px; color: rgba(17,20,27,.7); background: rgba(255,255,255,.24); font-family: inherit; font-size: 9px; font-weight: 750; letter-spacing: .03em; line-height: inherit; vertical-align: 2px; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.quota-window-badge:focus-visible { outline: 2px solid #234977; outline-offset: 2px; }
 .updated { margin-top: 5px; color: rgba(17,20,27,.9); font-size: 14px; font-weight: 500; letter-spacing: .08em; }
 .card-actions { display: flex; gap: 4px; }
 .card-actions button { width: 25px; height: 25px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; color: white; background: rgba(255,255,255,.1); cursor: pointer; backdrop-filter: blur(8px); }
@@ -99,6 +100,9 @@ html[data-mock-widget-size="compact"] .widget-view--compact { display: block; }
 .weekly-metric strong small { margin-left: 2px; font-size: 15px; font-weight: 400; }
 .weekly-metric span { display: block; margin: 0; font-size: 12px; font-weight: 500; color: rgba(17,20,27,.9); }
 .reset-credit-row { position: relative; margin-top: 9px; display: flex; align-items: center; gap: 6px; }
+.weekly-metric .credit-balance-row { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; letter-spacing: normal; white-space: nowrap; }
+.weekly-metric .credit-balance-row span { font-weight: 400; }
+.weekly-metric .credit-balance-value { font-weight: 400; font-variant-numeric: tabular-nums; }
 .reset-credit-button { min-height: auto; padding: 0; border: 0; border-radius: 0; color: #234977; background: transparent; font-size: 12px; font-weight: 400; cursor: pointer; }
 .reset-credit-button:hover { color: #173760; text-decoration: underline; text-underline-offset: 2px; }
 .reset-credit-tip { position: absolute; left: 0; bottom: 25px; width: max-content; max-width: 190px; padding: 9px 11px; border: 1px solid rgba(255,255,255,.52); border-radius: 10px; color: #1f2935; background: rgba(255,255,255,.82); box-shadow: 0 12px 30px rgba(35,48,73,.14); backdrop-filter: blur(12px); font-size: 9px; font-weight: 500; line-height: 1.55; }

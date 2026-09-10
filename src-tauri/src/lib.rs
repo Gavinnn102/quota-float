@@ -347,6 +347,11 @@ fn update_quota_window(app: &AppHandle, quota_window: &str) -> Result<WidgetPref
 }
 
 #[tauri::command]
+fn set_quota_window(quota_window: String, app: AppHandle) -> Result<WidgetPreferences, String> {
+    update_quota_window(&app, &quota_window)
+}
+
+#[tauri::command]
 fn set_widget_always_on_top(
     always_on_top: bool,
     app: AppHandle,
@@ -637,6 +642,7 @@ pub fn run() {
             get_preferences,
             set_preferences,
             set_widget_expanded,
+            set_quota_window,
             set_panel_visible,
             set_widget_always_on_top
         ])

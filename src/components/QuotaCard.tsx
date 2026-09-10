@@ -1,6 +1,6 @@
 import { ArrowClockwise, ArrowDown, ArrowUp, ArrowsInSimple, ArrowsOutSimple, ClockCounterClockwise, CloudSlash, SignIn, WarningCircle } from "@phosphor-icons/react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { clampPercent, formatDateTime, formatResetDate, formatResetTime, quotaTier } from "../lib/format";
+import { clampPercent, formatCreditBalance, formatDateTime, formatResetDate, formatResetTime, quotaTier } from "../lib/format";
 import { copy, normalizeLanguage } from "../lib/i18n";
 import { selectedUsageWindow } from "../lib/snapshots";
 import { normalizeQuotaWindow, type Language, type ProviderSnapshot, type QuotaWindow, type WidgetPreferences } from "../types";
@@ -14,6 +14,7 @@ interface Props {
   onNext: () => void;
   onTogglePin: () => void;
   onLanguage: () => void;
+  onQuotaWindowToggle?: (quotaWindow: QuotaWindow) => void;
   onHover: (hovered: boolean) => void;
   onRefresh?: () => void;
   isConsuming?: boolean;
@@ -59,6 +60,7 @@ export const QuotaCard = memo(function QuotaCard({
   onNext,
   onTogglePin: _onTogglePin,
   onLanguage,
+  onQuotaWindowToggle = () => {},
   onHover,
   onRefresh,
   isConsuming = false,
@@ -106,7 +108,7 @@ export const QuotaCard = memo(function QuotaCard({
       {notice ? <p className="operation-notice" role="status">{notice}</p> : null}
       <header className="card-header">
         <div>
-          <p className="eyebrow">{snapshot.displayName} · {snapshot.plan ?? t.accountFallback} <span className="quota-window-badge" title={t.windowName(quotaWindow)}>{t.windowShort(quotaWindow)}</span></p>
+          <p className="eyebrow">{snapshot.displayName} · {snapshot.plan ?? t.accountFallback} <button type="button" className="quota-window-badge" onMouseDown={(event) => event.stopPropagation()} onClick={() => onQuotaWindowToggle(quotaWindow === "fiveHour" ? "weekly" : "fiveHour")} aria-label={t.switchQuotaWindow(quotaWindow)} title={t.switchQuotaWindow(quotaWindow)}>{t.windowShort(quotaWindow)}</button></p>
           {snapshot.status !== "stale" ? <p className="updated">{t.shortRemaining(quotaWindow)}</p> : null}
         </div>
         <nav className="card-actions" aria-label={t.controls} onMouseDown={(event) => event.stopPropagation()} onMouseUp={(event) => event.stopPropagation()}>
@@ -129,17 +131,21 @@ export const QuotaCard = memo(function QuotaCard({
           <footer className="card-footer">
             <div className="weekly-metric">
               <p>{t.windowUntil(quotaWindow, formatResetDate(selectedWindow.resetsAt, language))}</p>
+              <p className="credit-balance-row">
+                <span>{t.credits}</span>
+                <span className="credit-balance-value">{formatCreditBalance(snapshot.credits, language)}</span>
+              </p>
               <div className="reset-credit-row" onMouseDown={(event) => event.stopPropagation()}>
                 <span>{snapshot.resetCredits === null ? t.resetCreditUnknown : t.resetCredits(snapshot.resetCredits)}</span>
                 {snapshot.resetCredits !== null && snapshot.resetCredits > 0 ? (
                   <button type="button" className="reset-credit-button" onClick={() => setShowCreditTip((value) => !value)} aria-expanded={showCreditTip} aria-label={t.view}>{t.view}</button>
                 ) : null}
+                {showCreditTip ? (
+                  <div className="reset-credit-tip" role="status" onMouseDown={(event) => event.stopPropagation()}>
+                    {creditExpirations.length > 0 ? creditExpirations.map((item) => <p key={item}>{item}</p>) : <p>{t.noCreditExpiration}</p>}
+                  </div>
+                ) : null}
               </div>
-              {showCreditTip ? (
-                <div className="reset-credit-tip" role="status" onMouseDown={(event) => event.stopPropagation()}>
-                  {creditExpirations.length > 0 ? creditExpirations.map((item) => <p key={item}>{item}</p>) : <p>{t.noCreditExpiration}</p>}
-                </div>
-              ) : null}
             </div>
             <ProviderMark />
           </footer>

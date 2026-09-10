@@ -15,12 +15,19 @@ export interface UsageWindow {
   windowSeconds: number;
 }
 
+export interface CreditBalance {
+  /** Service credit units, before conversion to the displayed USD amount. */
+  balance: number | null;
+  unlimited: boolean;
+}
+
 export interface ProviderSnapshot {
   provider: ProviderId;
   displayName: string;
   plan: string | null;
   weeklyWindow: UsageWindow | null;
   fiveHourWindow: UsageWindow | null;
+  credits: CreditBalance | null;
   resetCredits: number | null;
   resetCreditExpiresAt?: string[];
   updatedAt: string;

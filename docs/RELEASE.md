@@ -45,7 +45,7 @@ export RUSTFLAGS="--remap-path-prefix=$PWD=/src --remap-path-prefix=$HOME=/build
 npm run tauri:ubuntu
 ```
 
-`npm run tauri:ubuntu` 会使用 Cargo 锁文件构建，随后规范化依赖并解包校验安装树。产物 `Quota Float Ubuntu_<版本>_amd64.deb` 位于 `src-tauri/target/release/bundle/deb/`。标准化和验证脚本按当前版本选择 `.deb`，因此目录中可以安全保留 0.1.9、0.1.10、0.1.11 和 0.1.12 旧版测试包；构建 0.1.12-1 时应保持这些文件不变。
+`npm run tauri:ubuntu` 会使用 Cargo 锁文件构建，随后规范化依赖并解包校验安装树。产物 `Quota Float Ubuntu_<版本>_amd64.deb` 位于 `src-tauri/target/release/bundle/deb/`。标准化和验证脚本按当前版本选择 `.deb`，因此目录中可以安全保留 0.1.9、0.1.10、0.1.11 和 0.1.12 旧版测试包；构建 0.1.12-2 时应保持这些文件不变。
 
 ## Windows 与 macOS 构建
 
@@ -70,8 +70,8 @@ macOS CI 额外安装 `aarch64-apple-darwin` 与 `x86_64-apple-darwin`，并构�
 版本文件必须一致且使用尚未占用的标签，例如当前版本：
 
 ```bash
-git tag v0.1.12-1
-git push origin v0.1.12-1
+git tag v0.1.12-2
+git push origin v0.1.12-2
 ```
 
 发布工作流会：
@@ -87,7 +87,7 @@ git push origin v0.1.12-1
 
 ## Ubuntu 26.04 实机检查
 
-1. 使用 `sudo apt install "./Quota Float Ubuntu_0.1.12-1_amd64.deb"` 安装或升级，确认依赖可解析；首次安装/更新扩展后注销并重新登录。
+1. 使用 `sudo apt install "./Quota Float Ubuntu_0.1.12-2_amd64.deb"` 安装或升级，确认依赖可解析；首次安装/更新扩展后注销并重新登录。
 2. 确认应用在 GNOME 会话启动和正常退出时会尝试启用/禁用扩展，并测试异常退出后的手动禁用与卸载。
 3. 多开 ChatGPT，聚焦不同大小的窗口，确认组件始终跟随当前活动窗口。
 4. 验证 ChatGPT 移动、缩放、最小化、恢复和工作区切换；拖动或调整大小时确认组件平滑跟随，250 毫秒轮询只作为发现/恢复兜底。

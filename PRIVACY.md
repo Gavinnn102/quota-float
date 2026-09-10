@@ -6,6 +6,7 @@ Quota Float is designed to be local-first and minimal.
 
 - The desktop app reads the local Codex login file from `CODEX_HOME/auth.json` or the user's `.codex/auth.json`.
 - It sends the existing Codex access token only to the ChatGPT quota endpoints needed to read Codex usage.
+- The existing usage response also supplies the credit balance. The app keeps it in memory for display and transient-failure recovery; displaying Credits adds no endpoint or stored account data.
 - It may read the account identifier from the login file or token payload only to set the request header expected by the quota service.
 
 ## GNOME Shell extension boundary

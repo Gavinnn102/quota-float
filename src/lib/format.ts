@@ -1,5 +1,22 @@
 import { copy, normalizeLanguage } from "./i18n";
-import type { Language, ProviderSnapshot } from "../types";
+import type { CreditBalance, Language, ProviderSnapshot } from "../types";
+
+// USD face-value conversion for the current personal Codex credit display.
+// The usage endpoint returns credit units, not dollars. See docs/KNOWN-LIMITATIONS.md.
+const CREDITS_PER_USD = 25;
+const creditAmountFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: false,
+});
+
+export function formatCreditBalance(credits: CreditBalance | null | undefined, language: Language = "zh-CN"): string {
+  if (credits?.unlimited) return copy[normalizeLanguage(language)].creditsUnlimited;
+  const balance = credits?.balance;
+  if (balance == null || !Number.isFinite(balance)) return "—";
+  const amount = balance / CREDITS_PER_USD;
+  return `US$${creditAmountFormatter.format(Math.abs(amount) < 0.005 ? 0 : amount)}`;
+}
 
 export function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));

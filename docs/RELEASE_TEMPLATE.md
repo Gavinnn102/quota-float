@@ -1,4 +1,4 @@
-# Quota Float 0.1.12-1
+# Quota Float 0.1.12-2
 
 Quota Float is a cross-platform desktop widget for checking Codex quota from an existing local Codex login.
 
@@ -6,7 +6,7 @@ Quota Float is a cross-platform desktop widget for checking Codex quota from an 
 
 - Windows MSI + NSIS archive: `quota-float-windows-unsigned.zip`
 - macOS universal app + DMG archive: `quota-float-macos-universal-unsigned.zip`
-- Ubuntu 26.04 x86_64 Debian package: `Quota Float Ubuntu_0.1.12-1_amd64.deb`
+- Ubuntu 26.04 x86_64 Debian package: `Quota Float Ubuntu_0.1.12-2_amd64.deb`
 - SHA-256 checksums: `SHA256SUMS.txt`
 
 ## What's new
@@ -16,12 +16,12 @@ Quota Float is a cross-platform desktop widget for checking Codex quota from an 
 - Cleans up host/widget subscriptions and pending frame work when the host changes, the widget is destroyed, or the extension is disabled.
 - Preserves the existing compact-orb avoidance rules for ordinary, fullscreen, maximized, tiled, and short hosts; the full panel remains anchored at the host's lower-right corner.
 - Uses host frame geometry and window state without reading window contents or performing pixel recognition; fractional scaling and display movement remain real-machine checks.
-- Retains the existing 0.1.9, 0.1.10, 0.1.11, and 0.1.12 Debian test packages unchanged when the 0.1.12-1 package is built.
+- Retains the existing 0.1.9, 0.1.10, 0.1.11, and 0.1.12 Debian test packages unchanged when the 0.1.12-2 package is built.
 
 ## Ubuntu install
 
 ```bash
-sudo apt install "./Quota Float Ubuntu_0.1.12-1_amd64.deb"
+sudo apt install "./Quota Float Ubuntu_0.1.12-2_amd64.deb"
 ```
 
 After a first extension install or update, log out and back in once. In a GNOME session, the app makes a best-effort attempt to enable the extension at startup and disable it on a normal exit; it can be disabled manually after a crash or forced termination.

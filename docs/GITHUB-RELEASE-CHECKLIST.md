@@ -13,7 +13,7 @@ GitHub Actions 必须允许以下三类桌面 job 运行：
 ## 版本与标签
 
 - [ ] `package.json`、`package-lock.json`、`Cargo.toml`、`Cargo.lock`、`tauri.conf.json` 和发布模板版本一致，双语 README 与发布指南引用当前 `.deb` 文件名。
-- [ ] 标签尚未存在，且与版本完全匹配；当前示例为 `v0.1.12-1`。
+- [ ] 标签尚未存在，且与版本完全匹配；当前示例为 `v0.1.12-2`。
 - [ ] `node scripts/verify-release-version.mjs` 通过。
 
 ## 自动门禁与本地质量检查
