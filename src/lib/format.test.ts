@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { clampPercent, formatResetDate, formatResetTime, needsFastRefresh, quotaTier } from "./format";
 
+function localDateTime(value: string): string {
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getMonth() + 1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 describe("quota formatting", () => {
   it("clamps untrusted percentages", () => {
     expect(clampPercent(-5)).toBe(0);
@@ -45,8 +51,9 @@ describe("quota formatting", () => {
   });
 
   it("formats the reset as a compact local date and time", () => {
-    expect(formatResetDate("2026-07-10T18:42:00+08:00")).toBe("7/10 18:42");
-    expect(formatResetDate("2026-07-10T18:42:00+08:00", "en")).toBe("7/10 18:42");
+    const value = "2026-07-10T18:42:00+08:00";
+    expect(formatResetDate(value)).toBe(localDateTime(value));
+    expect(formatResetDate(value, "en")).toBe(localDateTime(value));
     expect(formatResetDate(null)).toBe("日期未知");
     expect(formatResetDate(null, "zh-CN")).toBe("日期未知");
     expect(formatResetDate(null, "en")).toBe("Date unknown");

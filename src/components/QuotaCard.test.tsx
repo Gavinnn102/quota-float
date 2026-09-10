@@ -35,6 +35,12 @@ const preferences: WidgetPreferences = {
   quotaWindow: "weekly",
 };
 
+function localDateTime(value: string): string {
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getMonth() + 1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function renderOrb(snapshot: ProviderSnapshot, quotaWindow: WidgetPreferences["quotaWindow"] = "weekly") {
   return render(
     <QuotaOrb
@@ -155,7 +161,7 @@ describe("selected quota window", () => {
 
     expect(screen.getByText("8")).toBeTruthy();
     expect(screen.getByText("resets in 5h")).toBeTruthy();
-    expect(screen.getByText("5-hour remaining · until 7/14 13:00")).toBeTruthy();
+    expect(screen.getByText(`5-hour remaining · until ${localDateTime(fiveHourCritical.fiveHourWindow!.resetsAt!)}`)).toBeTruthy();
     expect(container.querySelector(".quota-card--critical")).toBeTruthy();
   });
 
