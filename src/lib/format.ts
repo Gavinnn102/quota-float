@@ -14,7 +14,11 @@ export function formatCreditBalance(credits: CreditBalance | null | undefined, l
   if (credits?.unlimited) return copy[normalizeLanguage(language)].creditsUnlimited;
   const balance = credits?.balance;
   if (balance == null || !Number.isFinite(balance)) return "—";
-  const amount = balance / CREDITS_PER_USD;
+  // The Usage page displays the value backed by complete credits. Fractional
+  // credits returned by the usage API must not round the displayed USD value
+  // up (for example, 845.5 credits is shown as US$33.80, not US$33.82).
+  const displayBalance = balance >= 0 ? Math.floor(balance) : balance;
+  const amount = displayBalance / CREDITS_PER_USD;
   return `US$${creditAmountFormatter.format(Math.abs(amount) < 0.005 ? 0 : amount)}`;
 }
 

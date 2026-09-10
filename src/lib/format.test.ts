@@ -15,7 +15,8 @@ describe("quota formatting", () => {
     expect(formatCreditBalance({ balance: -2.5, unlimited: false }, language)).toBe("US$-0.10");
     expect(formatCreditBalance({ balance: -0.001, unlimited: false }, language)).toBe("US$0.00");
     expect(formatCreditBalance({ balance: 25000, unlimited: false }, language)).toBe("US$1000.00");
-    expect(formatCreditBalance({ balance: 1211.24, unlimited: false }, language)).toBe("US$48.45");
+    expect(formatCreditBalance({ balance: 1211.24, unlimited: false }, language)).toBe("US$48.44");
+    expect(formatCreditBalance({ balance: 845.5, unlimited: false }, language)).toBe("US$33.80");
   });
 
   it("does not turn missing or invalid credit balances into zero dollars", () => {
