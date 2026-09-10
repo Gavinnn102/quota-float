@@ -162,3 +162,37 @@ describe("quota window preference events", () => {
     expect(screen.queryByText("5-hour remaining")).toBeNull();
   });
 });
+
+describe("quota polling", () => {
+  it("refreshes every minute under normal conditions", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-14T00:00:00Z"));
+    render(<App />);
+
+    await act(async () => { await Promise.resolve(); });
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(1);
+
+    act(() => vi.advanceTimersByTime(59_999));
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(1);
+    act(() => vi.advanceTimersByTime(1));
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(2);
+  });
+
+  it("refreshes every 30 seconds when a quota window is near reset", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-14T00:00:00Z"));
+    bridge.fetchSnapshots.mockResolvedValue([{
+      ...snapshot,
+      fiveHourWindow: { ...snapshot.fiveHourWindow!, resetsAt: "2026-07-14T00:10:00Z" },
+    }]);
+    render(<App />);
+
+    await act(async () => { await Promise.resolve(); });
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(1);
+
+    act(() => vi.advanceTimersByTime(29_999));
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(1);
+    act(() => vi.advanceTimersByTime(1));
+    expect(bridge.fetchSnapshots).toHaveBeenCalledTimes(2);
+  });
+});

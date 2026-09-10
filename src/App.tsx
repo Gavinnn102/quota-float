@@ -7,6 +7,10 @@ import { mergeSnapshots } from "./lib/snapshots";
 import { normalizeQuotaWindow, type ProviderSnapshot, type QuotaWindow, type WidgetPreferences } from "./types";
 
 const DEFAULT_PREFS: WidgetPreferences = { panelVisible: true, expanded: true, alwaysOnTop: true, pinnedProvider: null, autoRotateSeconds: 12, language: "zh-CN", quotaWindow: "weekly" };
+const NORMAL_REFRESH_MS = 60_000;
+const FAST_REFRESH_MS = 30_000;
+const FAILED_REFRESH_BASE_MS = 30_000;
+const MAX_FAILED_REFRESH_MS = 30 * 60_000;
 
 function normalizePreferences(value: Partial<WidgetPreferences> | null | undefined): WidgetPreferences {
   return {
@@ -123,8 +127,8 @@ export default function App() {
   }, [refresh]);
 
   const refreshMs = useMemo(() => {
-    const backoff = failures.current === 0 ? 5 * 60_000 : Math.min(30 * 60_000, 30_000 * 2 ** (failures.current - 1));
-    if (failures.current === 0 && snapshots.some((item) => item.status === "ok" && needsFastRefresh(item))) return 60_000;
+    const backoff = failures.current === 0 ? NORMAL_REFRESH_MS : Math.min(MAX_FAILED_REFRESH_MS, FAILED_REFRESH_BASE_MS * 2 ** (failures.current - 1));
+    if (failures.current === 0 && snapshots.some((item) => item.status === "ok" && needsFastRefresh(item))) return FAST_REFRESH_MS;
     return backoff;
   }, [snapshots]);
 
